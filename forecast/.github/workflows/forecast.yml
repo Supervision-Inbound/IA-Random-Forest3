@@ -1,0 +1,32 @@
+name: daily-forecast
+on:
+  schedule:
+    - cron: "0 6 * * *"   # 06:00 UTC ≈ 03:00 America/Santiago
+  workflow_dispatch: {}
+permissions:
+  contents: write
+jobs:
+  forecast:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+      - name: Install deps
+        run: pip install -r requirements.txt
+      - name: Ensure models exist (no retrain)
+        run: |
+          [ -f models/rf_calls.pkl ] && [ -f models/rf_tmo.pkl ] || (echo "Faltan modelos"; exit 1)
+      - name: Inference (24h)
+        run: |
+          START="$(date -u +'%Y-%m-%d 00:00')"
+          END="$(date -u -d '+1 day' +'%Y-%m-%d 00:00')"
+          python infer.py --start "$START" --end "$END" --interval_min 60
+      - name: Commit JSON
+        run: |
+          git config user.name "github-actions"
+          git config user.email "actions@users.noreply.github.com"
+          git add out/forecast.json || true
+          git commit -m "chore: daily forecast" || echo "No changes"
+          git push
