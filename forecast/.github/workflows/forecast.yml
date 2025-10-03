@@ -3,14 +3,14 @@ name: forecast-from-release
 on:
   schedule:
     - cron: "0 6 * * *"   # cada 24h a las 06:00 UTC (~03:00 Chile)
-  workflow_dispatch: {}    # ejecución manual
+  workflow_dispatch: {}    # ejecución manual desde la pestaña "Actions"
 
 permissions:
-  contents: write
+  contents: write          # necesario para commitear el JSON
 
 env:
-  RELEASE_TAG: ia2                 # <-- tag del release (tu captura)
-  CALLS_ASSET: rf_calls.pkl        # <-- nombre exacto del asset
+  RELEASE_TAG: ia2                 # <-- tag del release que mostraste
+  CALLS_ASSET: rf_calls.pkl        # <-- nombres exactos de los assets
   TMO_ASSET:   rf_tmo.pkl
 
 jobs:
@@ -43,10 +43,7 @@ jobs:
           CALLS_URL=$(echo "$REL_JSON" | jq -r '.assets[] | select(.name=="'"${CALLS_ASSET}"'") | .url')
           TMO_URL=$(  echo "$REL_JSON" | jq -r '.assets[] | select(.name=="'"${TMO_ASSET}"'")   | .url')
 
-          if [ -z "$CALLS_URL" ] || [ -z "$TMO_URL" ]; then
-            echo "No se encontraron assets ${CALLS_ASSET} o ${TMO_ASSET} en el release ${RELEASE_TAG}"
-            exit 1
-          fi
+          [ -n "$CALLS_URL" ] && [ -n "$TMO_URL" ] || (echo "Assets no encontrados en ${RELEASE_TAG}"; exit 1)
 
           curl -sSL -H "Authorization: Bearer ${GH_TOKEN}" -H "Accept: application/octet-stream" "$CALLS_URL" -o models/${CALLS_ASSET}
           curl -sSL -H "Authorization: Bearer ${GH_TOKEN}" -H "Accept: application/octet-stream" "$TMO_URL"   -o models/${TMO_ASSET}
@@ -65,3 +62,4 @@ jobs:
           git add out/forecast.json || true
           git commit -m "chore: daily forecast (from release ${RELEASE_TAG})" || echo "No changes"
           git push
+
