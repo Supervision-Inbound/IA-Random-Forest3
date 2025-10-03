@@ -1,0 +1,33 @@
+{
+  "tz": "America/Santiago",
+  "n_splits": 5,
+  "n_trees": 600,
+  "feature_cols": [
+    "year",
+    "month",
+    "day",
+    "hour",
+    "minute",
+    "dow",
+    "is_weekend",
+    "is_holiday",
+    "day_of_year",
+    "week_of_year",
+    "sin_hour",
+    "cos_hour",
+    "sin_doy",
+    "cos_doy",
+    "part_of_day",
+    "is_business_hour",
+    "calls_lag_1",
+    "calls_lag_24",
+    "calls_lag_168",
+    "calls_rollmean_24",
+    "calls_rollmean_168",
+    "tmo_sec_lag_1",
+    "tmo_sec_lag_24",
+    "tmo_sec_lag_168",
+    "tmo_sec_rollmean_24",
+    "tmo_sec_rollmean_168"
+  ]
+}
